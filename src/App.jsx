@@ -16,6 +16,7 @@ export default function App() {
 
   function handleConfirmOrder() {
     setShowConfirmOrder(true);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function handleNewOrder() {
