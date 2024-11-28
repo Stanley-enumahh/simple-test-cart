@@ -26,31 +26,6 @@ import Cotta1 from "../assets/images/image-panna-cotta-desktop.jpg";
 import Cotta2 from "../assets/images/image-panna-cotta-mobile.jpg";
 import Cotta3 from "../assets/images/image-panna-cotta-thumbnail.jpg";
 
-export const datacart = [
-  {
-    image: {
-      thumbnail: waffle3,
-      mobile: waffle1,
-      desktop: waffle2,
-    },
-    name: "Waffle with Berries",
-    category: "Waffle",
-    price: 6.5,
-    id: 1,
-  },
-  {
-    image: {
-      thumbnail: creme3,
-      mobile: creme2,
-      desktop: creme1,
-    },
-    name: "Vanilla Bean Crème Brûlée",
-    category: "Crème Brûlée",
-    price: 7.0,
-    id: 2,
-  },
-];
-
 export const data = [
   {
     image: {
@@ -62,6 +37,7 @@ export const data = [
     category: "Waffle",
     price: 6.5,
     id: 1,
+    quantity: 0,
   },
   {
     image: {
@@ -73,6 +49,7 @@ export const data = [
     category: "Crème Brûlée",
     price: 7.0,
     id: 2,
+    quantity: 0,
   },
   {
     image: {
@@ -84,6 +61,7 @@ export const data = [
     category: "Macaron",
     price: 8.0,
     id: 3,
+    quantity: 0,
   },
   {
     image: {
@@ -95,6 +73,7 @@ export const data = [
     category: "Tiramisu",
     price: 5.5,
     id: 4,
+    quantity: 0,
   },
   {
     image: {
@@ -106,6 +85,7 @@ export const data = [
     category: "Baklava",
     price: 4.0,
     id: 5,
+    quantity: 0,
   },
   {
     image: {
@@ -117,6 +97,7 @@ export const data = [
     category: "Pie",
     price: 5.0,
     id: 6,
+    quantity: 0,
   },
   {
     image: {
@@ -128,6 +109,7 @@ export const data = [
     category: "Cake",
     price: 4.5,
     id: 7,
+    quantity: 0,
   },
   {
     image: {
@@ -139,6 +121,7 @@ export const data = [
     category: "Brownie",
     price: 4.5,
     id: 8,
+    quantity: 0,
   },
   {
     image: {
@@ -150,5 +133,6 @@ export const data = [
     category: "Panna Cotta",
     price: 6.5,
     id: 9,
+    quantity: 0,
   },
 ];

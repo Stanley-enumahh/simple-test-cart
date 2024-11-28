@@ -1,155 +1,213 @@
-import { data, datacart } from "./components/data";
-import cartIcon from "./assets/images/icon-add-to-cart.svg";
-import removeIcon from "./assets/images/icon-remove-item.svg";
-import carbonIcon from "./assets/images/icon-carbon-neutral.svg";
+import { data } from "./components/data";
 import { useState } from "react";
+import { GiCakeSlice } from "react-icons/gi";
+import ConfirmOrder from "./components/confirmOrder";
+import Header from "./components/header";
+import Product from "./components/products";
+import CartItem from "./components/cartItem";
+import Stats from "./components/stats";
 
 export default function App() {
-  const [cartItems, setCartItems] = useState([]);
-  function AddnewItem(item) {
-    setCartItems((items) => [...items, item]);
-    console.log(cartItems);
+  const [products, setProducts] = useState(data);
+  const [cart, setCart] = useState([]);
+  const cartCount = cart.length;
+  const [showConfirmOrder, setShowConfirmOrder] = useState(false);
+  console.log(showConfirmOrder);
+
+  function handleConfirmOrder() {
+    setShowConfirmOrder(true);
   }
+
+  function handleNewOrder() {
+    setShowConfirmOrder(false);
+    setCart([]);
+    setProducts(products.map((product) => ({ ...product, quantity: 0 })));
+  }
+  const totalPrice = cart.reduce(
+    (total, item) => total + item.price * item.quantity,
+    0
+  );
+
+  function handleAddToCart(item) {
+    const existingItem = cart.find((item) => item.id === item.id);
+    // if (existingItem) return;
+
+    setCart([...cart, { ...item, quantity: (item.quantity = 1) }]);
+  }
+
+  function handleDelete(id) {
+    setCart(cart.filter((item) => item.id !== id));
+    setProducts(
+      products.map((item) => (item.id === id ? { ...item, quantity: 0 } : item))
+    );
+  }
+
+  function handleIncrement(id) {
+    setProducts(
+      products.map((product) =>
+        product.id === id
+          ? { ...product, quantity: product.quantity + 1 }
+          : product
+      )
+    );
+    setCart(
+      cart.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              quantity: item.quantity + 1,
+            }
+          : item
+      )
+    );
+  }
+
+  function handleDecrement(id) {
+    setProducts(
+      products.map((product) =>
+        product.id === id
+          ? { ...product, quantity: product.quantity - 1 }
+          : product
+      )
+    );
+    setCart(
+      cart
+        .map((item) =>
+          item.id === id && item.quantity >= 1
+            ? {
+                ...item,
+                quantity: item.quantity - 1,
+              }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  }
+
   return (
-    <div className="w-full p-[30px] h-fit flex justify-center bg-[#fcf9f7]">
-      <div className="w-[50%] gap-6 justify-center items-center flex flex-col  h-full">
+    <div className="w-full p-[30px] h-fit relative md:flex-row flex-col flex justify-center bg-[#fcf9f7]">
+      <div className="w-full md:w-[50%] gap-6 justify-center items-center flex flex-col  h-full">
+        {showConfirmOrder && (
+          <ConfirmOrder
+            cart={cart}
+            handleNewOrder={handleNewOrder}
+            totalPrice={totalPrice}
+          />
+        )}
         <Header />
-        <Shop onAddnewItem={AddnewItem} />
+
+        <Shop
+          products={products}
+          handleAddToCart={handleAddToCart}
+          handleIncrement={handleIncrement}
+          handleDecrement={handleDecrement}
+        />
       </div>
-      <div className="w-[300px] h-[400px] bg-white shadow-md rounded-lg p-4">
-        <Cart cartItems={cartItems} />
+
+      <div
+        className={`w-full md:mt-0 mt-7 md:w-[300px] ${
+          cartCount > 0 ? "h-fit" : "md:h-fit h-[300px]"
+        } bg-white shadow-md rounded-lg p-4`}
+      >
+        <Cart
+          cart={cart}
+          cartCount={cartCount}
+          totalPrice={totalPrice}
+          handleDelete={handleDelete}
+          handleConfirmOrder={handleConfirmOrder}
+        />
       </div>
     </div>
   );
 }
 
-function Header() {
+export function OrderList({ cart }) {
   return (
-    <div className="w-full">
-      <h1 className="ml-[35px] text-xl font-bold">Desserts</h1>
+    <ul className="h-[65%] md:h-[200px]  overflow-y-scroll">
+      {cart.map((item) => (
+        <Order item={item} key={item.id} />
+      ))}
+    </ul>
+  );
+}
+
+function Order({ item }) {
+  return (
+    <li className="items-center flex h-[60px] overflow-hidden flex-row justify-between w-full bg-red-600 bg-opacity-10 p-4">
+      <div className="flex flex-row gap-2 ju">
+        <img
+          src={item.image.thumbnail}
+          className="h-[40px] w-[40px] rounded-md object-cover"
+          alt={item.name}
+        />
+        <div className="flex text-xs flex-col justify-between">
+          <p>{item.name}</p>
+          <span className="flex flex-row gap-2">
+            <p className="text-red-600">{item.quantity}x</p>
+            <p className="text-slate-500">@${item.price}</p>
+          </span>
+        </div>
+      </div>
+
+      <p className="font-semibold">${item.quantity * item.price}</p>
+    </li>
+  );
+}
+
+function EmptyCart() {
+  return (
+    <div className="w-full p-4 h-[220px] flex flex-col justify-center items-center text-gray-600 gap-4">
+      <GiCakeSlice size={50} />
+      <p className="text-sm md:text-xs">Your added items will aplly here</p>
     </div>
   );
 }
 
-function Shop({ onAddnewItem }) {
+function Shop({ products, handleAddToCart, handleIncrement, handleDecrement }) {
   return (
-    <div className="grid grid-cols-3 gap-x-4 gap-y-6">
-      {data.map((item) => (
-        <Product item={item} key={item.id} onAddnewItem={onAddnewItem} />
+    <div className="grid grid-cols-1 w-full md:grid-cols-3 gap-x-4 gap-y-6">
+      {products.map((item) => (
+        <Product
+          item={item}
+          key={item.id}
+          handleAddToCart={handleAddToCart}
+          handleIncrement={handleIncrement}
+          handleDecrement={handleDecrement}
+        />
       ))}
     </div>
   );
 }
 
-function Product({ item, onAddnewItem }) {
-  const [quantity, setQuantiy] = useState(0);
-  function handleIncrement(id) {
-    const newItem = { name, quantity, id };
-    onAddnewItem(newItem);
-
-    setQuantiy(quantity + 1);
-  }
-  function handleDecrement(id) {
-    if (quantity > 0) setQuantiy(quantity - 1);
-  }
-
-  return (
-    <div className="h-[300px] relative gap-12 flex flex-col w-[180px] rounded">
-      <img
-        src={item.image.desktop}
-        className={`w-full ${
-          quantity > 0 ? "border-2" : "border-none"
-        } select-none object-cover h-[60%] rounded border-[#c73a0f]`}
-        alt={item.name}
-      />
-      <div className="flex justify-center items-center  absolute top-[54%] left-[20%]">
-        {quantity === 0 ? (
-          <button
-            onClick={() => handleIncrement(item.id)}
-            className="flex flex-row items-center text-xs px-4 py-2 rounded-2xl border border-[#c73a0f] gap-1 bg-white font-semibold select-none"
-          >
-            <img src={cartIcon} width={15} /> Add to Cart
-          </button>
-        ) : (
-          <div className="bg-[#c73a0f] gap-6 items-center text-xs px-4 py-1 rounded-2xl  flex flex-row justify-between text-white">
-            <button
-              onClick={() => handleDecrement(item.id)}
-              className="select-none text-lg"
-            >
-              -
-            </button>
-            <p className="select-none">{quantity}</p>
-            <button
-              onClick={() => handleIncrement(item.id)}
-              className="select-none text-lg"
-            >
-              +
-            </button>
-          </div>
-        )}
-      </div>
-      <div className="flex flex-col gap-1 select-none">
-        <p className="text-xs text-gray-700">{item.category}</p>
-        <p className="text-xs font-bold"> {item.name} </p>
-        <p className="text-xs text-[#c73a0f] font-bold">${item.price}</p>
-      </div>
-    </div>
-  );
-}
-
-function Cart({ cartItems }) {
+function Cart({
+  cart,
+  quantity,
+  cartCount,
+  totalPrice,
+  handleDelete,
+  handleConfirmOrder,
+}) {
   return (
     <div className="select-none flex flex-col gap-4">
-      <h1 className="font-bold text-[#c73a0f]">Your cart (X)</h1>
-      <CartItem cartItems={cartItems} />
-      <Stats />
-    </div>
-  );
-}
-
-function CartItem({ item, cartItems }) {
-  return (
-    <div className="flex flex-col gap-2">
-      {cartItems.map((item) => {
-        return (
-          <div
-            key={item.id}
-            className="text-xs flex flex-row justify-between py-3 items-center border-b"
-          >
-            <div className="flex flex-col gap-2">
-              <p className="text-xs font-semibold">{item.name}</p>
-              <ul className="flex flex-row gap-1 items-center">
-                <li className="text-[#c73a0f] font-bold">1x</li>
-                <li className="ml-2 text-gray-600 font-semibold">
-                  ${item.price}
-                </li>
-                <li className="text-gray-600 font-semibold">${item.price}</li>
-              </ul>
-            </div>
-            <span className="rounded-full border w-fit h-fit">
-              <img src={removeIcon} />
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Stats() {
-  return (
-    <div className="flex flex-col">
-      <div className="w-full flex flex-row justify-between">
-        <p className="text-xs">total order</p>
-        <p className="text-xl font-bold">$49.90</p>
-      </div>
-      <div className="flex flex-row gap-2 w-full justify-center items-center bg-[#ccc] py-3 rounded-lg my-3">
-        <img src={carbonIcon} width={15} />
-        <p className="text-xs">This a carbon-neutral delivery</p>
-      </div>
-      <button className="bg-[#c73a0f] text-white text-sm rounded-2xl py-2">
-        Confirm order
-      </button>
+      <h1 className="font-bold text-[#c73a0f] md:text-lg text-xl">
+        Your cart ({cartCount})
+      </h1>
+      {cartCount === 0 ? (
+        <EmptyCart />
+      ) : (
+        <>
+          <CartItem
+            cart={cart}
+            quantity={quantity}
+            cartCount={cartCount}
+            handleDelete={handleDelete}
+          />
+          <Stats
+            totalPrice={totalPrice}
+            handleConfirmOrder={handleConfirmOrder}
+          />
+        </>
+      )}
     </div>
   );
 }
